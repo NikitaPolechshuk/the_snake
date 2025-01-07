@@ -43,6 +43,7 @@ clock = pygame.time.Clock()
 # Тут опишите все классы игры.
 class GameObject:
     """Общий класс для игровых объектов."""
+
     def __init__(self, position, body_color):
         self.position = position
         self.body_color = body_color
@@ -53,6 +54,8 @@ class GameObject:
 
 
 class Apple(GameObject):
+    """Класс для Яблока."""
+
     body_color = APPLE_COLOR
 
     def randomize_position(self):
@@ -74,6 +77,8 @@ class Apple(GameObject):
 
 
 class Snake(GameObject):
+    """Класс для Змеи."""
+
     def reset(self):
         """Сброс Змейки."""
         self.positions = [BOARD_CENTER]
@@ -140,6 +145,7 @@ def handle_keys(game_object):
 
 
 def main():
+    """Main."""
     # Инициализация PyGame:
     pygame.init()
 
