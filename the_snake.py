@@ -42,11 +42,13 @@ clock = pygame.time.Clock()
 
 # Тут опишите все классы игры.
 class GameObject:
+    """Общий класс для игровых объектов."""
     def __init__(self, position, body_color):
         self.position = position
         self.body_color = body_color
 
     def draw(self):
+        """Отрисовка."""
         pass
 
 
@@ -54,6 +56,7 @@ class Apple(GameObject):
     body_color = APPLE_COLOR
 
     def randomize_position(self):
+        """Генерация рандомной позиции для Яблока."""
         self.position = (
             randint(0, GRID_WIDTH - GRID_SIZE) * GRID_SIZE,
             randint(0, GRID_HEIGHT - GRID_SIZE) * GRID_SIZE
@@ -64,6 +67,7 @@ class Apple(GameObject):
         super().__init__(self.position, self.body_color)
 
     def draw(self):
+        """Отрисовка."""
         rect = pygame.Rect(self.position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
@@ -71,6 +75,7 @@ class Apple(GameObject):
 
 class Snake(GameObject):
     def reset(self):
+        """Сброс Змейки."""
         self.positions = [BOARD_CENTER]
         self.direction = RIGHT
         self.next_direction = None
@@ -81,9 +86,11 @@ class Snake(GameObject):
         super().__init__(position, body_color)
 
     def get_head_position(self):
+        """Получение координат головы змейки."""
         return (self.positions[0][0], self.positions[0][1])
 
     def move(self):
+        """Двигаем змейку на следующую клетку"""
         NewHeadX = self.positions[0][0] + self.direction[0] * GRID_SIZE
         NewHeadY = self.positions[0][1] + self.direction[1] * GRID_SIZE
         NewHeadPosition = (NewHeadX % SCREEN_WIDTH, NewHeadY % SCREEN_HEIGHT)
@@ -91,6 +98,7 @@ class Snake(GameObject):
         self.last = self.positions.pop()
 
     def draw(self):
+        """Отрисовка."""
         for position in self.positions[:-1]:
             rect = (pygame.Rect(position, (GRID_SIZE, GRID_SIZE)))
             pygame.draw.rect(screen, self.body_color, rect)
@@ -108,12 +116,14 @@ class Snake(GameObject):
 
     # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
+        """Обновление позиции."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
 
 
 def handle_keys(game_object):
+    """Обработка собыйтий в игре."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
