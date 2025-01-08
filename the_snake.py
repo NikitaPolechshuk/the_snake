@@ -43,7 +43,8 @@ clock = pygame.time.Clock()
 class GameObject:
     """Общий класс для игровых объектов."""
 
-    def __init__(self, position=BOARD_CENTER,
+    def __init__(self,
+                 position=BOARD_CENTER,
                  body_color=BOARD_BACKGROUND_COLOR
                  ):
         self.position = position
