@@ -43,7 +43,9 @@ clock = pygame.time.Clock()
 class GameObject:
     """Общий класс для игровых объектов."""
 
-    def __init__(self, position, body_color):
+    def __init__(self, position=BOARD_CENTER,
+                 body_color=BOARD_BACKGROUND_COLOR
+                 ):
         self.position = position
         self.body_color = body_color
 
@@ -85,7 +87,7 @@ class Snake(GameObject):
         self.next_direction = None
         self.last = False
 
-    def __init__(self, position, body_color):
+    def __init__(self, position=BOARD_CENTER, body_color=SNAKE_COLOR):
         self.reset()
         super().__init__(position, body_color)
 
