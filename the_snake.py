@@ -150,13 +150,16 @@ def main():
     # Инициализация PyGame:
     pygame.init()
 
-    # Тут нужно создать экземпляры классов.
-    Snake_Object = Snake(BOARD_CENTER, SNAKE_COLOR)
+    # Создаем экземпляры классов.
+    Snake_Object = Snake()
     Apple_Object = Apple()
 
     while True:
+        # Задержка
         clock.tick(SPEED)
+        # Считываем нажатие клавиатуры
         handle_keys(Snake_Object)
+        # Обновляем и двигаем змейку
         Snake_Object.update_direction()
         Snake_Object.move()
         # Проверка столкновения голосы с Яблоком и с своим телом
