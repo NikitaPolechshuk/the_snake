@@ -170,14 +170,14 @@ def main():
         snake_object.update_direction()
         snake_object.move()
         # Проверка столкновения головы с Яблоком и с своим телом
-        HeadPosition = snake_object.get_head_position()
-        if HeadPosition == apple_object.position:
+        head_position = snake_object.get_head_position()
+        if head_position == apple_object.position:
             while True:
                 apple_object.randomize_position()
                 if apple_object.position not in snake_object.positions:
                     break
             snake_object.positions.append(snake_object.last)
-        elif HeadPosition in snake_object.positions[3:]:
+        elif head_position in snake_object.positions[3:]:
             snake_object.reset()
             apple_object.randomize_position()
             rect = (pygame.Rect((0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT)))
