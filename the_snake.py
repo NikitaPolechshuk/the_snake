@@ -63,7 +63,7 @@ class GameObject:
         self.body_color = body_color
 
     def cell_draw(self, cell_position):
-        """Метод для отрисовки одной ячейки"""
+        """Метод для отрисовки одной ячейки."""
         rect = pygame.Rect(cell_position, (GRID_SIZE, GRID_SIZE))
         pygame.draw.rect(screen, self.body_color, rect)
         pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
@@ -111,10 +111,10 @@ class Snake(GameObject):
         return self.positions[0]
 
     def move(self):
-        """Двигаем змейку на следующую клетку"""
-        head_position = self.get_head_position()
-        new_head_x = head_position[0] + self.direction[0] * GRID_SIZE
-        new_head_y = head_position[1] + self.direction[1] * GRID_SIZE
+        """Двигаем змейку на следующую клетку."""
+        head_x, head_y = self.get_head_position()
+        new_head_x = head_x + self.direction[0] * GRID_SIZE
+        new_head_y = head_y + self.direction[1] * GRID_SIZE
         new_head_pos = (new_head_x % SCREEN_WIDTH, new_head_y % SCREEN_HEIGHT)
         self.positions.insert(0, new_head_pos)
         self.last = self.positions.pop()
@@ -158,33 +158,33 @@ def main():
     pygame.init()
 
     # Создаем экземпляры классов.
-    Snake_Object = Snake()
-    Apple_Object = Apple()
+    snake_object = Snake()
+    apple_object = Apple()
 
     while True:
         # Задержка
         clock.tick(SPEED)
         # Считываем нажатие клавиатуры
-        handle_keys(Snake_Object)
+        handle_keys(snake_object)
         # Обновляем и двигаем змейку
-        Snake_Object.update_direction()
-        Snake_Object.move()
+        snake_object.update_direction()
+        snake_object.move()
         # Проверка столкновения головы с Яблоком и с своим телом
-        HeadPosition = Snake_Object.get_head_position()
-        if HeadPosition == Apple_Object.position:
+        HeadPosition = snake_object.get_head_position()
+        if HeadPosition == apple_object.position:
             while True:
-                Apple_Object.randomize_position()
-                if Apple_Object.position not in Snake_Object.positions:
+                apple_object.randomize_position()
+                if apple_object.position not in snake_object.positions:
                     break
-            Snake_Object.positions.append(Snake_Object.last)
-        elif HeadPosition in Snake_Object.positions[1:]:
-            Snake_Object.reset()
-            Apple_Object.randomize_position()
+            snake_object.positions.append(snake_object.last)
+        elif HeadPosition in snake_object.positions[3:]:
+            snake_object.reset()
+            apple_object.randomize_position()
             rect = (pygame.Rect((0, 0), (SCREEN_WIDTH, SCREEN_HEIGHT)))
             pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, rect)
         # Отрисовка
-        Apple_Object.draw()
-        Snake_Object.draw()
+        apple_object.draw()
+        snake_object.draw()
         pygame.display.update()
 
 
