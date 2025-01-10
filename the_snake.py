@@ -81,11 +81,15 @@ class GameObject:
         self.position = position
         self.body_color = body_color
 
-    def cell_draw(self, cell_position):
+    def draw_rect(self, color, rect, size=0):
+        """Отрисовка прямоугольника."""
+        pygame.draw.rect(screen, color, rect, size)
+
+    def draw_cell(self, cell_position):
         """Метод для отрисовки одной ячейки."""
         rect = pygame.Rect(cell_position, (GRID_SIZE, GRID_SIZE))
-        pygame.draw.rect(screen, self.body_color, rect)
-        pygame.draw.rect(screen, BORDER_COLOR, rect, 1)
+        self.draw_rect(self.body_color, rect)
+        self.draw_rect(BORDER_COLOR, rect, 1)
 
     def draw(self):
         """Отрисовка."""
@@ -108,7 +112,7 @@ class Apple(GameObject):
 
     def draw(self):
         """Отрисовка."""
-        self.cell_draw(self.position)
+        self.draw_cell(self.position)
 
 
 class Snake(GameObject):
@@ -117,7 +121,7 @@ class Snake(GameObject):
     def clear_screan(self):
         """Очистка области экрана где ползает змейка."""
         rect = (pygame.Rect((0, 0), (BOARD_WIDTH, BOARD_HEIGHT)))
-        pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, rect)
+        self.draw_rect(BOARD_BACKGROUND_COLOR, rect)
 
     def reset(self):
         """Сброс Змейки."""
@@ -147,17 +151,14 @@ class Snake(GameObject):
         self.last = self.positions.pop()
 
     def draw(self):
-        """Отрисовка."""
-        for position in self.positions[:-1]:
-            self.cell_draw(position)
-
-        # Отрисовка головы змейки
-        self.cell_draw(self.get_head_position())
+        """Отрисовка змеи."""
+        # Достаточно отрисовать одну клетку - новое положение головы
+        self.draw_cell(self.get_head_position())
 
         # Затирание последнего сегмента
         if self.last:
             last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            pygame.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
+            self.draw_rect(BOARD_BACKGROUND_COLOR, last_rect)
 
     # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
@@ -167,7 +168,7 @@ class Snake(GameObject):
             self.next_direction = None
 
 
-class InfoBoard():
+class InfoBoard(GameObject):
     """Класс для экрана с информацией."""
 
     def __init__(self,
@@ -180,10 +181,6 @@ class InfoBoard():
         self.score = score
         self.speed = speed
         self.set_score_and_speed(self.score, self.speed)
-
-    def draw_rect(self, color, rect, size=0):
-        """Отрисовка прямоугольника."""
-        pygame.draw.rect(screen, color, rect, size)
 
     def clean_screen(self):
         """Очистка экрана с информацией."""
@@ -198,7 +195,7 @@ class InfoBoard():
         """Печать текста"""
         screen.blit(self.font.render(text, True, INFO_BOARD_FONT_COLOR), position)
 
-    def draw_csore(self):
+    def draw_score(self):
         """Отрисовка экрана с информацией."""
         self.clean_screen()
         # Печатаем счёт
@@ -211,10 +208,10 @@ class InfoBoard():
                           INFO_BOARD_BORDER_SIZE * 2 + BOARD_HEIGHT + INFO_BOARD_FONT_SIZE])
 
     def set_score_and_speed(self, new_score, new_speed):
-        """Установка счета и  скорости и их отрисовка"""
+        """Установка счета и скорости и их отрисовка"""
         self.score = new_score
         self.speed = new_speed
-        self.draw_csore()
+        self.draw_score()
 
     def print_game_over(self):
         """Отрисовка надписи об окончание игры"""
