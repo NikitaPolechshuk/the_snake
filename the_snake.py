@@ -21,12 +21,48 @@ INFO_BOARD_BORDER1_COLOR = (31, 66, 22)
 INFO_BOARD_BORDER2_COLOR = (53, 112, 38)
 INFO_BOARD_BORDER_SIZE = 5
 
+# Пути к файлам с картинками
+APPLE_IMG = 'Graphics/apple.png'
+SNAKE_BODY_IMG = 'Graphics/body.png'
+SNAKE_HEAD_IMG = 'Graphics/head.png'
+SNAKE_TAIL_IMG = 'Graphics/tail.png'
+SNAKE_TURN_IMG = 'Graphics/turn.png'
 
 # Направления движения:
-UP = (0, -1)
-DOWN = (0, 1)
+UP = (0, -1,)
 LEFT = (-1, 0)
+DOWN = (0, 1,)
 RIGHT = (1, 0)
+
+# Правила поворота изображений
+IMG_TURN = {
+    UP: 0,
+    LEFT: 90,
+    DOWN: 180,
+    RIGHT: 270
+}
+
+# Правила отрисовки поворотных элементов змейки
+# (delta(head, third), direction) -> angle
+SNAKE_BODY_TURN_RULES = {
+    ((1, -1), (0, -1)): 0,
+    ((1, 1), (0, 1)): 90,
+    ((-1, 1), (0, 1)): 180,
+    ((-1, -1), (0, -1)): 270,
+
+    ((-1, 1), (-1, 0)): 0,
+    ((-1, -1), (-1, 0)): 90,
+    ((1, -1), (1, 0)): 180,
+    ((1, 1), (1, 0)): 270,
+    ((1, 1), (-1, 0)): 0,
+    ((1, -1), (-1, 0)): 90,
+    ((-1, -1), (1, 0)): 180,
+    ((-1, 1), (1, 0)): 270,
+    ((1, 1), (0, -1)): 0,
+    ((1, -1), (0, 1)): 90,
+    ((-1, -1), (0, 1)): 180,
+    ((-1, 1), (0, -1)): 270,
+}
 
 # Правила поворота змейки:
 TURN_RULES = {
@@ -108,11 +144,13 @@ class Apple(GameObject):
     def __init__(self):
         self.randomize_position()
         self.body_color = APPLE_COLOR
+        self.surf = pygame.image.load(APPLE_IMG).convert_alpha()
         super().__init__(self.position, self.body_color)
 
     def draw(self):
         """Отрисовка."""
-        self.draw_cell(self.position)
+        apple_rect = self.surf.get_rect(topleft=self.position)
+        screen.blit(self.surf, apple_rect)
 
 
 class Snake(GameObject):
@@ -135,11 +173,32 @@ class Snake(GameObject):
 
     def __init__(self, position=BOARD_CENTER, body_color=SNAKE_COLOR):
         self.reset()
+        # Загрузка изображений змейки
+        self.surf_body = pygame.image.load(SNAKE_BODY_IMG).convert_alpha()
+        self.surf_head = pygame.image.load(SNAKE_HEAD_IMG).convert_alpha()
+        self.surf_tail = pygame.image.load(SNAKE_TAIL_IMG).convert_alpha()
+        self.surf_turn = pygame.image.load(SNAKE_TURN_IMG).convert_alpha()
         super().__init__(position, body_color)
 
     def get_head_position(self):
         """Получение координат головы змейки."""
         return self.positions[0]
+
+    def get_second_position(self):
+        """Получение координат головы змейки."""
+        return self.positions[1]
+
+    def get_third_position(self):
+        """Получение координат головы змейки."""
+        return self.positions[2]
+
+    def get_tail_position(self):
+        """Получение координат хвоста змейки."""
+        return self.positions[len(self.positions) - 1]
+
+    def get_pre_tail_position(self):
+        """Получение координат хвоста змейки."""
+        return self.positions[len(self.positions) - 2]
 
     def move(self):
         """Двигаем змейку на следующую клетку."""
@@ -150,22 +209,93 @@ class Snake(GameObject):
         self.positions.insert(0, new_head_pos)
         self.last = self.positions.pop()
 
-    def draw(self):
-        """Отрисовка змеи."""
-        # Достаточно отрисовать одну клетку - новое положение головы
-        self.draw_cell(self.get_head_position())
-
-        # Затирание последнего сегмента
-        if self.last:
-            last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            self.draw_rect(BOARD_BACKGROUND_COLOR, last_rect)
-
     # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
         """Обновление позиции."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
+
+    # Метод для отработки разницы координат при прохождение стенки
+    @staticmethod
+    def crop_delta_xy(delta):
+        """Проверяем прохождение стенки"""
+        if delta < -1:
+            return -1
+        elif delta > 1:
+            return 1
+        else:
+            return delta
+
+    # Метод для подсчитывание разницы координат элементов на поле
+    def delta_xy(self, first_position, second_position):
+        """Подсчитываем разницу координат"""
+        delta_x = (first_position[0] - second_position[0]) // GRID_SIZE
+        delta_y = (first_position[1] - second_position[1]) // GRID_SIZE
+        delta_x = self.crop_delta_xy(delta_x)
+        delta_y = self.crop_delta_xy(delta_y)
+        return delta_x, delta_y
+
+    def draw(self):
+        """Отрисовка змеи."""
+        # Отрисовка головы
+        head_position = self.get_head_position()
+        head_rect = self.surf_head.get_rect(topleft=head_position)
+        rotate = pygame.transform.rotate(self.surf_head, IMG_TURN[self.direction])
+        screen.blit(rotate, head_rect)
+
+        # Отрисовка второго элемента змейки
+        if len(self.positions) > 2:
+            second_position = self.get_second_position()
+            third_position = self.get_third_position()
+            # Очистка второго элемента змейки
+            second_rect = pygame.Rect(second_position, (GRID_SIZE, GRID_SIZE))
+            self.draw_rect(BOARD_BACKGROUND_COLOR, second_rect)
+            # Определеяем какое изображение будет на втором элменте
+            turn_rect = None
+            if head_position[0] == second_position[0] == third_position[0]:
+                # Вертикальное тело
+                angle = 0
+            elif head_position[1] == second_position[1] == third_position[1]:
+                # Горизонтальное тело
+                angle = 90
+            else:
+                # Поворотное тело
+                turn_rect = self.surf_turn.get_rect(topleft=second_position)
+            # Отрисовка
+            if turn_rect is None:
+                # Отрисовка вертикального или горизонтального тела
+                body_rect = self.surf_body.get_rect(topleft=second_position)
+                rotate_body = pygame.transform.rotate(self.surf_body, angle)
+                screen.blit(rotate_body, body_rect)
+            else:
+                # Отрисовка поворотного тела
+                rotate_turn = pygame.transform.rotate(
+                    self.surf_turn,
+                    SNAKE_BODY_TURN_RULES[self.delta_xy(head_position, third_position), self.direction])
+                screen.blit(rotate_turn, turn_rect)
+
+        # Отрисовка хвоста
+        tail_position = self.get_tail_position()
+        if tail_position != head_position:
+            # Очистка хвостового квадратика в цвет фона
+            tail_rect = pygame.Rect(tail_position, (GRID_SIZE, GRID_SIZE))
+            self.draw_rect(BOARD_BACKGROUND_COLOR, tail_rect)
+            # Отрисовка изображения хвоста
+            pre_tail_position = self.get_pre_tail_position()
+            tail_rect = self.surf_tail.get_rect(topleft=tail_position)
+            delta_x, delta_y = self.delta_xy(tail_position, pre_tail_position)
+            angle = IMG_TURN[delta_x, delta_y]
+            if (abs(tail_position[0] - pre_tail_position[0]) > GRID_SIZE) or (
+               abs(tail_position[1] - pre_tail_position[1]) > GRID_SIZE):
+                angle += 180
+            rotate = pygame.transform.rotate(self.surf_tail, angle)
+            screen.blit(rotate, tail_rect)
+
+        # Затирание последнего сегмента
+        if self.last:
+            last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
+            self.draw_rect(BOARD_BACKGROUND_COLOR, last_rect)
 
 
 class InfoBoard(GameObject):
@@ -294,7 +424,6 @@ def main():
             apple_object.randomize_position()
             # Обновляем счет и скорость и отрисовываем
             info_board.set_score_and_speed(0, round(snake_object.speed))
-
         # Отрисовка
         apple_object.draw()
         snake_object.draw()
