@@ -89,10 +89,10 @@ APPLE_COLOR = (255, 0, 0)
 SNAKE_COLOR = (0, 255, 0)
 
 # Скорость движения змейки:
-SPEED_START = 15
+SPEED_START = 10
 
 # Коэффициент прибавки скорости за каждое яблоко (+3%)
-SPEED_COEFFICIENT = 3
+SPEED_COEFFICIENT = 1
 
 # Настройка игрового окна:
 screen = pygame.display.set_mode((BOARD_WIDTH,
@@ -209,14 +209,12 @@ class Snake(GameObject):
         self.positions.insert(0, new_head_pos)
         self.last = self.positions.pop()
 
-    # Метод обновления направления после нажатия на кнопку
     def update_direction(self):
         """Обновление позиции."""
         if self.next_direction:
             self.direction = self.next_direction
             self.next_direction = None
 
-    # Метод для отработки разницы координат при прохождение стенки
     @staticmethod
     def crop_delta_xy(delta):
         """Проверяем прохождение стенки"""
@@ -227,7 +225,6 @@ class Snake(GameObject):
         else:
             return delta
 
-    # Метод для подсчитывание разницы координат элементов на поле
     def delta_xy(self, first_position, second_position):
         """Подсчитываем разницу координат"""
         delta_x = (first_position[0] - second_position[0]) // GRID_SIZE
@@ -235,6 +232,11 @@ class Snake(GameObject):
         delta_x = self.crop_delta_xy(delta_x)
         delta_y = self.crop_delta_xy(delta_y)
         return delta_x, delta_y
+
+    def clear_cell(self, position):
+        """Метод для закраски элемента в цвет фона."""
+        rect = pygame.Rect(position, (GRID_SIZE, GRID_SIZE))
+        self.draw_rect(BOARD_BACKGROUND_COLOR, rect)
 
     def draw(self):
         """Отрисовка змеи."""
@@ -249,8 +251,7 @@ class Snake(GameObject):
             second_position = self.get_second_position()
             third_position = self.get_third_position()
             # Очистка второго элемента змейки
-            second_rect = pygame.Rect(second_position, (GRID_SIZE, GRID_SIZE))
-            self.draw_rect(BOARD_BACKGROUND_COLOR, second_rect)
+            self.clear_cell(second_position)
             # Определеяем какое изображение будет на втором элменте
             turn_rect = None
             if head_position[0] == second_position[0] == third_position[0]:
@@ -270,17 +271,22 @@ class Snake(GameObject):
                 screen.blit(rotate_body, body_rect)
             else:
                 # Отрисовка поворотного тела
+                angle = SNAKE_BODY_TURN_RULES[self.delta_xy(head_position, third_position), self.direction]
+                if (abs(head_position[0] - second_position[0]) > GRID_SIZE) or (
+                   head_position[1] - second_position[1] > GRID_SIZE):
+                    print('ПРОШЛИ СТЕНКУ')
+                    # ТУТ НАДО ДОРАБОТАТЬ УГОЛ
+                    
                 rotate_turn = pygame.transform.rotate(
                     self.surf_turn,
-                    SNAKE_BODY_TURN_RULES[self.delta_xy(head_position, third_position), self.direction])
+                    angle)
                 screen.blit(rotate_turn, turn_rect)
 
         # Отрисовка хвоста
         tail_position = self.get_tail_position()
         if tail_position != head_position:
             # Очистка хвостового квадратика в цвет фона
-            tail_rect = pygame.Rect(tail_position, (GRID_SIZE, GRID_SIZE))
-            self.draw_rect(BOARD_BACKGROUND_COLOR, tail_rect)
+            self.clear_cell(tail_position)
             # Отрисовка изображения хвоста
             pre_tail_position = self.get_pre_tail_position()
             tail_rect = self.surf_tail.get_rect(topleft=tail_position)
@@ -294,8 +300,7 @@ class Snake(GameObject):
 
         # Затирание последнего сегмента
         if self.last:
-            last_rect = pygame.Rect(self.last, (GRID_SIZE, GRID_SIZE))
-            self.draw_rect(BOARD_BACKGROUND_COLOR, last_rect)
+            self.clear_cell(self.last)
 
 
 class InfoBoard(GameObject):
